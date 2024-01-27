@@ -10,8 +10,8 @@ def read_root():
         "hello":"test"
     }
 
-@app.get("/get_nearby_accidents/")
-async def get_nearby_accidents(user_lat: float, user_lng: float):
+@app.get("/nearby_accidents/")
+async def nearby_accidents(user_lat: float, user_lng: float):
     temp_radius = 5
     return points_within_radius((user_lat, user_lng), temp_radius)
 
