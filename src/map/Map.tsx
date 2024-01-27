@@ -8,6 +8,20 @@ interface AccidentPoint {
     Longitude: number;
 }
 
+async function getAccidentPoints(
+    centerPoint: google.maps.LatLngLiteral,
+): Promise<Array<AccidentPoint>> {
+    const fetchUrl = new URL("http://127.0.0.1:8000/nearby_accidents");
+    fetchUrl.searchParams.set("user_lat", centerPoint!.lat.toString());
+    fetchUrl.searchParams.set("user_lng", centerPoint!.lng.toString());
+
+    const accidentPointsResponse = await fetch(fetchUrl);
+    const accidentPointsJson: Array<AccidentPoint> =
+        await accidentPointsResponse.json();
+
+    return accidentPointsJson;
+}
+
 function Map() {
     const [zoom, setZoom] = useState<number>(15);
 
@@ -21,31 +35,26 @@ function Map() {
         height: "100vh",
     };
 
-    const mapCenterPoint: google.maps.LatLngLiteral = {
-        lat: 33.745273,
-        lng: -117.892191,
-    };
+    const [centerPoint, setCenterPoint] =
+        useState<google.maps.LatLngLiteral | null>(null);
 
     useEffect(() => {
-        async function getAccidentPoints(): Promise<Array<AccidentPoint>> {
-            const fetchUrl = new URL("http://127.0.0.1/8000");
-            fetchUrl.searchParams.set(
-                "user_lat",
-                mapCenterPoint.lat.toString(),
+        if (!centerPoint) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    setCenterPoint({
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                    });
+                },
+                (_error) => {},
+                { timeout: 30000 },
             );
-            fetchUrl.searchParams.set(
-                "user_lng",
-                mapCenterPoint.lng.toString(),
-            );
-
-            const accidentPointsResponse = await fetch(fetchUrl);
-            const accidentPointsJson: Array<AccidentPoint> =
-                await accidentPointsResponse.json();
-
-            return accidentPointsJson;
         }
 
-        console.log(getAccidentPoints());
+        if (centerPoint) {
+            console.log(getAccidentPoints(centerPoint));
+        }
     });
 
     function renderMap() {
@@ -55,7 +64,7 @@ function Map() {
         return (
             <GoogleMap
                 id="map-element"
-                center={mapCenterPoint}
+                center={centerPoint!}
                 zoom={zoom}
                 mapContainerStyle={style}
             ></GoogleMap>
