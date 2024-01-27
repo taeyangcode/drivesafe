@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { memo, useCallback, useState } from "react";
 import { GoogleMap, useJsApiLoader } from "@react-google-maps/api";
 
 const containerStyle = {
@@ -27,9 +27,7 @@ function MyComponent() {
         setMap(map);
     }, []);
 
-    const onUnmount = React.useCallback(function callback(
-        map: google.maps.Map,
-    ) {
+    const onUnmount = useCallback((map: google.maps.Map) => {
         setMap(null);
     }, []);
 
@@ -49,4 +47,4 @@ function MyComponent() {
     );
 }
 
-export default React.memo(MyComponent);
+export default memo(MyComponent);
