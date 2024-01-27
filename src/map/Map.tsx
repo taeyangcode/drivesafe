@@ -1,4 +1,4 @@
-import { GoogleMap, useLoadScript } from "@react-google-maps/api";
+import { GoogleMap, Marker, useLoadScript } from "@react-google-maps/api";
 import { CSSProperties, memo, useEffect, useState } from "react";
 
 interface AccidentPoint {
@@ -38,6 +38,8 @@ function Map() {
     const [centerPoint, setCenterPoint] =
         useState<google.maps.LatLngLiteral | null>(null);
 
+    const [accidentPoints, setAccidentPoints] = useState<AccidentPoint[]>([]);
+
     useEffect(() => {
         if (!centerPoint) {
             navigator.geolocation.getCurrentPosition(
@@ -52,8 +54,10 @@ function Map() {
             );
         }
 
-        if (centerPoint) {
-            console.log(getAccidentPoints(centerPoint));
+        if (centerPoint && accidentPoints.length === 0) {
+            getAccidentPoints(centerPoint).then((accidentPoints) => {
+                setAccidentPoints(accidentPoints);
+            });
         }
     });
 
@@ -67,7 +71,16 @@ function Map() {
                 center={centerPoint!}
                 zoom={zoom}
                 mapContainerStyle={style}
-            ></GoogleMap>
+            >
+                {accidentPoints.map((accidentPoint) => (
+                    <Marker
+                        position={{
+                            lat: accidentPoint.Latitude,
+                            lng: accidentPoint.Longitude,
+                        }}
+                    />
+                ))}
+            </GoogleMap>
         );
     }
 
