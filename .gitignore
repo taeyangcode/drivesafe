@@ -28,3 +28,4 @@ dist-ssr
 
 # Accidents
 US_Accidents_March23_sampled_500k.csv
+__pycache__
