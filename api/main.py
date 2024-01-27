@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-data = pd.read_csv("US_Accidents_March23_sampled_500k.csv")[['Severity','Start_Lat','Start_Lng']]
+data = pd.read_csv("US_Accidents_March23_sampled_500k.csv")[['ID','Severity','Start_Lat','Start_Lng']]
 # print(data) 
 
 def points_within_radius(data, center, radius):
@@ -12,7 +12,7 @@ def points_within_radius(data, center, radius):
     filtered_data = filtered_data[filtered_data['Start_Lng']<= center[1] +radius/69]
 
     for index,row in filtered_data.iterrows():
-        result.append({"Severity":row['Severity'],"Latitude":row['Start_Lat'],"Longitude":row['Start_Lng']})
+        result.append({"ID":row['ID'],"Severity":row['Severity'],"Latitude":row['Start_Lat'],"Longitude":row['Start_Lng']})
     return result
     
 
