@@ -15,7 +15,7 @@ def haversine_distance(lat1, lon1, lat2, lon2):
     return R * c
 
 def points_within_radius(center, radius):
-    data = pd.read_csv("US_Accidents_March23_sampled_500k.csv")[['ID', 'Severity','Start_Lat','Start_Lng']]
+    data = pd.read_csv("./api/US_Accidents_March23_sampled_500k.csv")[['ID', 'Severity','Start_Lat','Start_Lng']]
 
     result = []
     for index,row in data.iterrows():

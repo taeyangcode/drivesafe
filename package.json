@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "dev-windows": ".venv\\Scripts\\activate && vite",
-    "dev-mac": "source .venv/bin/activate && vite",
+    "dev-mac": "source .venv/bin/activate && pip3 install -r api/requirements.txt && python3 api/server.py && vite",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
