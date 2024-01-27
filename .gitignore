@@ -32,3 +32,6 @@ __pycache__
 
 # OS Specific Files
 .DS_Store
+
+# Python Virtual Environment
+.venv
