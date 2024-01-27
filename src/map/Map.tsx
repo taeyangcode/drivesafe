@@ -25,7 +25,7 @@ function Map() {
         }
         return (
             <GoogleMap
-                id="data-example"
+                id="map-element"
                 center={mapCenterPoint}
                 zoom={zoom}
                 mapContainerStyle={style}
