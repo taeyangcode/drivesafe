@@ -28,3 +28,6 @@ dist-ssr
 
 # Accidents
 US_Accidents_March23_sampled_500k.csv
+
+# OS Specific Files
+.DS_Store
