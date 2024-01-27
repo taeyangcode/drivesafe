@@ -28,6 +28,7 @@ dist-ssr
 
 # Accidents
 US_Accidents_March23_sampled_500k.csv
+US_Accidents_March23.csv
 __pycache__
 
 # OS Specific Files

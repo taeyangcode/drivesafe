@@ -1,7 +1,9 @@
 import numpy as np
 import pandas as pd
 
-data = pd.read_csv("US_Accidents_March23_sampled_500k.csv")[['ID','Severity','Start_Lat','Start_Lng']]
+# data = pd.read_csv("US_Accidents_March23_sampled_500k.csv")[['ID','Severity','Start_Lat','Start_Lng']]
+data = pd.read_csv("US_Accidents_March23.csv")[['ID','Severity','Start_Lat','Start_Lng']]
+
 # print(data) 
 
 def points_within_radius(data, center, radius):
