@@ -1,5 +1,11 @@
-import { GoogleMap, Marker, useLoadScript } from "@react-google-maps/api";
-import { CSSProperties, memo, useEffect, useState } from "react";
+import {
+    GoogleMap,
+    HeatmapLayerF,
+    Libraries,
+    Marker,
+    useLoadScript,
+} from "@react-google-maps/api";
+import { CSSProperties, memo, useEffect, useRef, useState } from "react";
 
 interface AccidentPoint {
     ID: string;
@@ -7,6 +13,11 @@ interface AccidentPoint {
     Latitude: number;
     Longitude: number;
 }
+
+const style: CSSProperties = {
+    width: "100vw",
+    height: "100vh",
+};
 
 async function getAccidentPoints(
     centerPoint: google.maps.LatLngLiteral,
@@ -22,23 +33,19 @@ async function getAccidentPoints(
     return accidentPointsJson;
 }
 
+const googleMapsLibraries: Libraries = ["places", "visualization"];
+
 function Map() {
     const [zoom, setZoom] = useState<number>(15);
+    const [centerPoint, setCenterPoint] =
+        useState<google.maps.LatLngLiteral | null>(null);
+    const [accidentPoints, setAccidentPoints] = useState<AccidentPoint[]>([]);
 
     const { isLoaded } = useLoadScript({
         id: "google-map-script",
         googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+        libraries: googleMapsLibraries,
     });
-
-    const style: CSSProperties = {
-        width: "100vw",
-        height: "100vh",
-    };
-
-    const [centerPoint, setCenterPoint] =
-        useState<google.maps.LatLngLiteral | null>(null);
-
-    const [accidentPoints, setAccidentPoints] = useState<AccidentPoint[]>([]);
 
     useEffect(() => {
         if (!centerPoint) {
@@ -61,6 +68,28 @@ function Map() {
         }
     });
 
+    function renderMarkers() {
+        return accidentPoints.map((accidentPoint) => (
+            <Marker
+                position={{
+                    lat: accidentPoint.Latitude,
+                    lng: accidentPoint.Longitude,
+                }}
+            />
+        ));
+    }
+
+    function renderHeatmap() {
+        return (
+            <HeatmapLayerF
+                data={accidentPoints.map(
+                    (point) =>
+                        new google.maps.LatLng(point.Latitude, point.Longitude),
+                )}
+            />
+        );
+    }
+
     function renderMap() {
         if (!isLoaded) {
             return <h2> Loading </h2>;
@@ -72,14 +101,7 @@ function Map() {
                 zoom={zoom}
                 mapContainerStyle={style}
             >
-                {accidentPoints.map((accidentPoint) => (
-                    <Marker
-                        position={{
-                            lat: accidentPoint.Latitude,
-                            lng: accidentPoint.Longitude,
-                        }}
-                    />
-                ))}
+                {accidentPoints.length !== 0 && renderHeatmap()}
             </GoogleMap>
         );
     }
