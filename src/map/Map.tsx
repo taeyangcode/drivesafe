@@ -1,6 +1,6 @@
-import { GoogleMap, HeatmapLayerF, Libraries, useLoadScript } from "@react-google-maps/api";
+import { GoogleMap, Libraries, Marker, useLoadScript } from "@react-google-maps/api";
 import { CSSProperties, memo, useCallback, useEffect, useRef, useState } from "react";
-import { getAccidentPoints } from "../wrapper";
+import { AccidentPoint, Bounds, LargeAccidentPoint, getAccidentPoints } from "../wrapper";
 
 const style: CSSProperties = {
     width: "100vw",
@@ -12,17 +12,19 @@ const googleMapsLibraries: Libraries = ["places", "visualization"];
 function Map() {
     const [zoom, _] = useState<number>(15);
     const [centerPoint, setCenterPoint] = useState<google.maps.LatLngLiteral | null>(null);
-    const [accidentPoints, setAccidentPoints] = useState<google.maps.LatLng[]>([]);
+    const [bounds, setBounds] = useState<Bounds | null>(null);
+    const [accidentPoints, setAccidentPoints] = useState<(AccidentPoint | LargeAccidentPoint)[]>(
+        [],
+    );
+
+    const [googleMapReady, setGoogleMapReady] = useState<boolean>(false);
 
     const googleMap = useRef<google.maps.Map | null>(null);
 
     const onLoad = useCallback((map: google.maps.Map) => {
         googleMap.current = map;
+        setTimeout(() => setGoogleMapReady(true), 1000);
     }, []);
-
-    // const onUnmount = useCallback((_map: google.maps.Map) => {
-    //     googleMap.current = null;
-    // }, []);
 
     const { isLoaded } = useLoadScript({
         id: "google-map-script",
@@ -43,45 +45,58 @@ function Map() {
                 { timeout: 30000 },
             );
         }
+    }, []);
 
-        if (centerPoint && accidentPoints.length === 0) {
-            getAccidentPoints(centerPoint).then((accidentPoints) => {
+    useEffect(() => {
+        if (googleMap.current) {
+            const newBounds = googleMap.current.getBounds()!;
+            setBounds({
+                north: newBounds.getNorthEast().lng(),
+                south: newBounds.getSouthWest().lng(),
+                east: newBounds.getNorthEast().lat(),
+                west: newBounds.getSouthWest().lat(),
+            });
+        }
+    }, [googleMapReady]);
+
+    useEffect(() => {
+        if (googleMap.current && bounds && accidentPoints.length === 0) {
+            getAccidentPoints(bounds).then((accidentPoints) => {
                 console.log(accidentPoints);
                 setAccidentPoints(accidentPoints);
             });
         }
+    }, [bounds]);
 
-        function updateHeatmap() {
-            if (!centerPoint) {
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (!googleMap.current) {
                 return;
             }
-
-            const newPosition: google.maps.LatLng | undefined = googleMap.current?.getCenter();
-            if (!newPosition) {
-                return;
-            }
-
-            const newCoordinates: google.maps.LatLngLiteral = {
-                lat: newPosition.lat(),
-                lng: newPosition.lng(),
+            const googleMapBounds = googleMap.current!.getBounds()!;
+            const currentBounds: Bounds = {
+                north: googleMapBounds.getNorthEast().lng(),
+                south: googleMapBounds.getSouthWest().lng(),
+                east: googleMapBounds.getNorthEast().lat(),
+                west: googleMapBounds.getSouthWest().lat(),
             };
-            if (centerPoint.lat === newCoordinates.lat && centerPoint.lng === newCoordinates.lng) {
-                return;
-            }
 
-            setCenterPoint(newCoordinates);
-
-            getAccidentPoints(centerPoint).then((points) => {
-                console.log("points", points);
-                setAccidentPoints(points);
+            getAccidentPoints(currentBounds).then((accidentPoints) => {
+                setAccidentPoints([...accidentPoints]);
             });
-        }
-        const interval = setInterval(() => updateHeatmap(), 5_000);
+        }, 2_000);
+        // return () => clearInterval(interval);
+    }, [googleMapReady]);
 
-        return () => clearInterval(interval);
-    });
+    function renderAccidentMarkers() {
+        return accidentPoints.map((accidentPoint) => {
+            return (
+                <Marker position={{ lat: accidentPoint.Latitude, lng: accidentPoint.Longitude }} />
+            );
+        });
+    }
 
-    return isLoaded ? (
+    return isLoaded && centerPoint ? (
         <GoogleMap
             id="map-element"
             center={centerPoint!}
@@ -89,11 +104,11 @@ function Map() {
             mapContainerStyle={style}
             onLoad={onLoad}
         >
-            {accidentPoints.length > 0 && <HeatmapLayerF data={accidentPoints} />}
+            {renderAccidentMarkers()}
         </GoogleMap>
     ) : (
         <h2>Loading...</h2>
     );
 }
 
-export default Map;
+export default memo(Map);
