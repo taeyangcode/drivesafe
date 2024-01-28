@@ -2,6 +2,10 @@ import { GoogleMap, Libraries, Marker, useLoadScript } from "@react-google-maps/
 import { CSSProperties, memo, useCallback, useEffect, useRef, useState } from "react";
 import { AccidentPoint, Bounds, LargeAccidentPoint, getAccidentPoints } from "../wrapper";
 
+import dangerYellow from "../../assets/danger-yellow.svg";
+import dangerOrange from "../../assets/danger-orange.svg";
+import dangerRed from "../../assets/danger-red.svg";
+
 const style: CSSProperties = {
     width: "100vw",
     height: "100vh",
@@ -81,14 +85,39 @@ function Map() {
                 west: googleMapBounds.getSouthWest().lat(),
             };
 
-            getAccidentPoints(currentBounds).then((accidentPoints) => {
-                setAccidentPoints([...accidentPoints]);
-            });
-        }, 2_000);
-        // return () => clearInterval(interval);
+            setTimeout(
+                () =>
+                    getAccidentPoints(currentBounds).then((accidentPoints) => {
+                        setAccidentPoints([...accidentPoints]);
+                    }),
+                5_000,
+            );
+        }, 1_000);
+        return () => clearInterval(interval);
     }, [googleMapReady]);
 
     function renderAccidentMarkers() {
+        if (accidentPoints.length === 0) {
+            return;
+        }
+
+        if ((accidentPoints[0] as LargeAccidentPoint)?.Count != null) {
+            console.log("big point");
+            return accidentPoints.map((accidentPoint) => {
+                return (
+                    <Marker
+                        icon={
+                            (accidentPoint as LargeAccidentPoint).Count > 1000
+                                ? dangerRed
+                                : (accidentPoint as LargeAccidentPoint).Count > 500
+                                ? dangerOrange
+                                : dangerYellow
+                        }
+                        position={{ lat: accidentPoint.Latitude, lng: accidentPoint.Longitude }}
+                    />
+                );
+            });
+        }
         return accidentPoints.map((accidentPoint) => {
             return (
                 <Marker position={{ lat: accidentPoint.Latitude, lng: accidentPoint.Longitude }} />
