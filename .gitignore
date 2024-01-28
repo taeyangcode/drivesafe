@@ -29,6 +29,14 @@ dist-ssr
 # Accidents
 US_Accidents_March23_sampled_500k.csv
 US_Accidents_March23.csv
+total_accidents_city.csv
+total_accidents_county.csv
+total_accidents_state.csv
+
+cities_data.csv
+counties_data.csv
+states_data.csv
+
 __pycache__
 
 # OS Specific Files

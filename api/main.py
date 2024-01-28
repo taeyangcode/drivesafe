@@ -4,19 +4,37 @@ import math
 # data = pd.read_csv("US_Accidents_March23_sampled_500k.csv")[['ID','Severity','Start_Lat','Start_Lng']]
 data = pd.read_csv("US_Accidents_March23_sampled_500k.csv")[['ID','Severity','Start_Lat','Start_Lng', 'County']]
 
-def points_within_bounds(data, north, south, east, west):
+# load data from csv files for city, county, and state counts
+city_data = pd.read_csv("cities_data.csv")
+county_data = pd.read_csv("counties_data.csv")
+state_data = pd.read_csv("states_data.csv")
+
+def points_within_bounds(data, north: float, south: float, east: float, west: float):
+    '''
+    Return individual car crashes that occur within the rectangular bounds provided
+    '''
     result = []
-    filtered_data = data[data['Start_Lat']>= west] # west
-    filtered_data = filtered_data[filtered_data['Start_Lat']<= east]  # east
-    filtered_data = filtered_data[filtered_data['Start_Lng']>= south] # south
-    filtered_data = filtered_data[filtered_data['Start_Lng']<= north] # north
+    filtered_data = data[data['Start_Lat'] >= west]
+    filtered_data = filtered_data[filtered_data['Start_Lat'] <= east]
+    filtered_data = filtered_data[filtered_data['Start_Lng'] >= south]
+    filtered_data = filtered_data[filtered_data['Start_Lng'] <= north]
 
     for index,row in filtered_data.iterrows():
         result.append({"ID":row['ID'],"Severity":row['Severity'],"Latitude":row['Start_Lat'],"Longitude":row['Start_Lng']})
     return result
 
 
+def grouped_crashes_in_bounds(data, north, south, east, west):
+    result = []
+    filtered_data = data[data['Start_Lat'] >= west]
+    filtered_data = filtered_data[filtered_data['Start_Lat'] <= east]
+    filtered_data = filtered_data[filtered_data['Start_Lng'] >= south]
+    filtered_data = filtered_data[filtered_data['Start_Lng'] <= north]
 
+    for index, row in filtered_data.iterrows():
+        result.append({"Latitude":row['Start_Lat'],"Longitude":row['Start_Lng'], "Count":row['Count']})
+    return result
+    
 
 if __name__=="__main__":
     # radius = 5
