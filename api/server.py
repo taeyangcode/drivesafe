@@ -24,10 +24,25 @@ def read_root():
         "hello":"test"
     }
 
+
+
 @app.get("/nearby_accidents/")
-async def nearby_accidents(user_lat: float, user_lng: float):
-    temp_radius = 5
-    return points_within_radius(data, (user_lat, user_lng), temp_radius)
+async def nearby_accidents(north: float, south: float, east: float, west: float):
+
+    # <= 30 indivual car accidents
+    y = math.abs(north - south)/54.6
+    x = math.abs(west-east)/69
+    dist_miles = max(x , y) / 2
+    if dist_miles < 30:
+        return points_within_bounds(data, north, south, east, west)
+    elif dist_miles < 50:
+        pass
+    elif dist_miles < 70:
+        pass
+    else:
+        pass
+
+    return 
 
 if __name__ == "__main__":
     pass
