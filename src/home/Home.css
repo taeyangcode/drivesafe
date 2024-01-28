@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
+
+.home-background {
+    width: 100%;
+    height: 100vh;
+    background-color: #c0e2f2;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+
+    font-family: "Rubik", sans-serif;
+}
+
+.welcome-text {
+    font-size: 80px; /* Adjusted font size for mobile */
+    text-transform: uppercase;
+    font-weight: bold;
+
+    padding: 5%;
+
+    color: white;
+}
+
+.subtext {
+    font-size: 24px; /* Adjusted font size for mobile */
+    font-weight: regular;
+    text-transform: uppercase;
+}
+
+/* Media Query for smaller screens (adjust as needed) */
+@media screen and (max-width: 600px) {
+    .welcome-text {
+        font-size: 36px;
+    }
+
+    .subtext {
+        font-size: 18px;
+    }
+}

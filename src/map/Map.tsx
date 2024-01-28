@@ -5,6 +5,7 @@ import { AccidentPoint, Bounds, LargeAccidentPoint, getAccidentPoints } from "..
 import dangerYellow from "../../assets/danger-yellow.svg";
 import dangerOrange from "../../assets/danger-orange.svg";
 import dangerRed from "../../assets/danger-red.svg";
+import Home from "../home/Home";
 
 const style: CSSProperties = {
     width: "100vw",
@@ -135,7 +136,7 @@ function Map() {
             {renderAccidentMarkers()}
         </GoogleMap>
     ) : (
-        <h2>Loading...</h2>
+        <Home />
     );
 }
 
