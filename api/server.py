@@ -36,7 +36,7 @@ async def nearby_accidents(north: float, south: float, east: float, west: float)
     x = abs(west-east) * 69        # latitude converted to miles
     dist_miles = max(x , y) / 2         # get the larger radius in miles
 
-    if dist_miles < 20:
+    if dist_miles < 15:
         # return individual car accidents
         return points_within_bounds(data, north, south, east, west)
     
@@ -44,7 +44,7 @@ async def nearby_accidents(north: float, south: float, east: float, west: float)
         # return cities (lat,lng) and their car crash counts
         return grouped_crashes_in_bounds(city_data, north, south, east, west)
 
-    elif dist_miles < 100:
+    elif dist_miles < 500:
         # return counties (lat,lng) and their car crash counts
         return grouped_crashes_in_bounds(county_data, north, south, east, west)
 
