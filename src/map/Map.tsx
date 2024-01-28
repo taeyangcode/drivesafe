@@ -1,45 +1,30 @@
-import {
-    GoogleMap,
-    HeatmapLayerF,
-    Libraries,
-    Marker,
-    useLoadScript,
-} from "@react-google-maps/api";
-import { CSSProperties, memo, useEffect, useRef, useState } from "react";
-
-interface AccidentPoint {
-    ID: string;
-    Severity: number;
-    Latitude: number;
-    Longitude: number;
-}
+import { GoogleMap, Libraries, Marker, useLoadScript } from "@react-google-maps/api";
+import { CSSProperties, memo, useCallback, useEffect, useRef, useState } from "react";
+import { AccidentPoint, Bounds, LargeAccidentPoint, getAccidentPoints } from "../wrapper";
 
 const style: CSSProperties = {
     width: "100vw",
     height: "100vh",
 };
 
-async function getAccidentPoints(
-    centerPoint: google.maps.LatLngLiteral,
-): Promise<Array<AccidentPoint>> {
-    const fetchUrl = new URL("http://127.0.0.1:8000/nearby_accidents");
-    fetchUrl.searchParams.set("user_lat", centerPoint!.lat.toString());
-    fetchUrl.searchParams.set("user_lng", centerPoint!.lng.toString());
-
-    const accidentPointsResponse = await fetch(fetchUrl);
-    const accidentPointsJson: Array<AccidentPoint> =
-        await accidentPointsResponse.json();
-
-    return accidentPointsJson;
-}
-
 const googleMapsLibraries: Libraries = ["places", "visualization"];
 
 function Map() {
-    const [zoom, setZoom] = useState<number>(15);
-    const [centerPoint, setCenterPoint] =
-        useState<google.maps.LatLngLiteral | null>(null);
-    const [accidentPoints, setAccidentPoints] = useState<AccidentPoint[]>([]);
+    const [zoom, _] = useState<number>(15);
+    const [centerPoint, setCenterPoint] = useState<google.maps.LatLngLiteral | null>(null);
+    const [bounds, setBounds] = useState<Bounds | null>(null);
+    const [accidentPoints, setAccidentPoints] = useState<(AccidentPoint | LargeAccidentPoint)[]>(
+        [],
+    );
+
+    const [googleMapReady, setGoogleMapReady] = useState<boolean>(false);
+
+    const googleMap = useRef<google.maps.Map | null>(null);
+
+    const onLoad = useCallback((map: google.maps.Map) => {
+        googleMap.current = map;
+        setTimeout(() => setGoogleMapReady(true), 1000);
+    }, []);
 
     const { isLoaded } = useLoadScript({
         id: "google-map-script",
@@ -60,53 +45,70 @@ function Map() {
                 { timeout: 30000 },
             );
         }
+    }, []);
 
-        if (centerPoint && accidentPoints.length === 0) {
-            getAccidentPoints(centerPoint).then((accidentPoints) => {
+    useEffect(() => {
+        if (googleMap.current) {
+            const newBounds = googleMap.current.getBounds()!;
+            setBounds({
+                north: newBounds.getNorthEast().lng(),
+                south: newBounds.getSouthWest().lng(),
+                east: newBounds.getNorthEast().lat(),
+                west: newBounds.getSouthWest().lat(),
+            });
+        }
+    }, [googleMapReady]);
+
+    useEffect(() => {
+        if (googleMap.current && bounds && accidentPoints.length === 0) {
+            getAccidentPoints(bounds).then((accidentPoints) => {
+                console.log(accidentPoints);
                 setAccidentPoints(accidentPoints);
             });
         }
-    });
+    }, [bounds]);
 
-    function renderMarkers() {
-        return accidentPoints.map((accidentPoint) => (
-            <Marker
-                position={{
-                    lat: accidentPoint.Latitude,
-                    lng: accidentPoint.Longitude,
-                }}
-            />
-        ));
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (!googleMap.current) {
+                return;
+            }
+            const googleMapBounds = googleMap.current!.getBounds()!;
+            const currentBounds: Bounds = {
+                north: googleMapBounds.getNorthEast().lng(),
+                south: googleMapBounds.getSouthWest().lng(),
+                east: googleMapBounds.getNorthEast().lat(),
+                west: googleMapBounds.getSouthWest().lat(),
+            };
+
+            getAccidentPoints(currentBounds).then((accidentPoints) => {
+                setAccidentPoints([...accidentPoints]);
+            });
+        }, 2_000);
+        // return () => clearInterval(interval);
+    }, [googleMapReady]);
+
+    function renderAccidentMarkers() {
+        return accidentPoints.map((accidentPoint) => {
+            return (
+                <Marker position={{ lat: accidentPoint.Latitude, lng: accidentPoint.Longitude }} />
+            );
+        });
     }
 
-    function renderHeatmap() {
-        return (
-            <HeatmapLayerF
-                data={accidentPoints.map(
-                    (point) =>
-                        new google.maps.LatLng(point.Latitude, point.Longitude),
-                )}
-            />
-        );
-    }
-
-    function renderMap() {
-        if (!isLoaded) {
-            return <h2> Loading </h2>;
-        }
-        return (
-            <GoogleMap
-                id="map-element"
-                center={centerPoint!}
-                zoom={zoom}
-                mapContainerStyle={style}
-            >
-                {accidentPoints.length !== 0 && renderHeatmap()}
-            </GoogleMap>
-        );
-    }
-
-    return <>{renderMap()}</>;
+    return isLoaded && centerPoint ? (
+        <GoogleMap
+            id="map-element"
+            center={centerPoint!}
+            zoom={zoom}
+            mapContainerStyle={style}
+            onLoad={onLoad}
+        >
+            {renderAccidentMarkers()}
+        </GoogleMap>
+    ) : (
+        <h2>Loading...</h2>
+    );
 }
 
 export default memo(Map);
