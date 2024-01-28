@@ -102,7 +102,6 @@ function Map() {
         }
 
         if ((accidentPoints[0] as LargeAccidentPoint)?.Count != null) {
-            console.log("big point");
             return accidentPoints.map((accidentPoint) => {
                 return (
                     <Marker
