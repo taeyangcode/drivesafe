@@ -90,7 +90,7 @@ function Map() {
                     getAccidentPoints(currentBounds).then((accidentPoints) => {
                         setAccidentPoints([...accidentPoints]);
                     }),
-                5_000,
+                2_000,
             );
         }, 1_000);
         return () => clearInterval(interval);
